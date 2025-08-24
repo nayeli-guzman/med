@@ -2,9 +2,6 @@
 
 Este proyecto es un **prototipo de plataforma de inteligencia oncológica** que integra múltiples fuentes de datos clínicos (FHIR, HL7, OpenFDA) con un **Clinical AI Assistant (LLMs + RAG)** para generar **insights accionables** sobre adherencia al tratamiento y coordinación de cuidados.
 
-> ⚠️ **Nota:** Este proyecto es parte de un desafío técnico. El sistema externo puede devolver datos incompletos, paginados o inconsistentes. El objetivo es mostrar integración robusta y manejo de errores.
-
----
 
 ## 📂 Estructura del proyecto
 
@@ -129,23 +126,13 @@ python -m app.test
 
 ---
 
-## 📝 Estado actual
+## 📝 Funcionalidades esperadas
 
 ✔️ Integración básica con FHIR, HL7, FDA y Clinical AI  
-✔️ Endpoint unificado `/patients/{id}/insights`  
+✔️ Endpoint unificado `/patients/{id}/insights` 
 ✔️ Manejo de errores (token, OperationOutcome, HL7 inválidos)  
 ✔️ Normalización de datos para IA  
 ✔️ Reporte de calidad de datos en la salida  
 
-🚧 Pendiente / mejoras:
-- UI/Frontend (React, Dash, etc.) para mostrar insights  
-- Tests automáticos más completos  
-- Mejorar scoring y filtrado de observaciones HL7  
-- Integración más profunda con Clinical AI (cuando responda)  
-
 ---
 
-## 📖 Créditos
-
-Desarrollado como parte de un **desafío técnico de integración en salud**.  
-Stack: **Python 3.11+**, **FastAPI**, **httpx**, **hl7apy**, **FHIR Resources**.

@@ -28,3 +28,4 @@ AI_BASE   = env("AI_BASE")
 FHIR_CLIENT_ID     = env("FHIR_CLIENT_ID")
 FHIR_CLIENT_SECRET = env("FHIR_CLIENT_SECRET")
 FHIR_TOKEN_URL  = os.getenv("FHIR_TOKEN_URL")  # opcional
+REDIS_URL = env("REDIS_URL", "redis://localhost:6379/0")

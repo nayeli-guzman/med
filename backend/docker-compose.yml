@@ -1,0 +1,61 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oncology-api
+    env_file:
+      - ../.env              # 👈 usa el .env de la raíz
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD-SHELL","curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./:/app:rw,delegated 
+
+  redis:
+    image: redis:7-alpine
+    container_name: oncology-redis
+    command: ["redis-server","--appendonly","yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+
+  ingestor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oncology-ingestor
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+    command: ["python","-m","app.workers.ingestor"]
+    restart: unless-stopped
+
+  normalizer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oncology-normalizer
+    env_file:
+      - ../.env
+    depends_on:
+      - redis
+    command: ["python","-m","app.workers.normalizer"]
+    restart: unless-stopped
+
+volumes:
+  redis_data:

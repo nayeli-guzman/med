@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+httpx
+python-dotenv
+hl7apy
+fhir.resources
+redis[async]
+aiolimiter
+xmltodict

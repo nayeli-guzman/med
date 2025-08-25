@@ -4,12 +4,75 @@ from hl7apy.parser import parse_message
 
 from app.core import config
 
-async def get_hl7_messages():
-    async with httpx.AsyncClient(timeout=15) as c:
-        r = await c.get(f"{config.HL7_BASE}/hl7/messages")
-        r.raise_for_status()
-        return r.json()
+def _coerce_to_list(payload):
+    """
+    Normaliza la respuesta del stream HL7 a una lista de dicts.
+    Acepta list, dict con varias formas, o str (JSON / JSON lines).
+    """
+    if isinstance(payload, list):
+        return payload
 
+    if isinstance(payload, dict):
+        # casos comunes
+        for key in ("messages", "items", "data", "results", "entries"):
+            v = payload.get(key)
+            if isinstance(v, list):
+                return v
+        # dict de un solo mensaje
+        if "message" in payload:
+            return [payload]
+        # sin forma conocida -> vacío
+        return []
+
+    if isinstance(payload, str):
+        s = payload.strip()
+        # JSON válido
+        if s.startswith("{") or s.startswith("["):
+            try:
+                j = json.loads(s)
+                return _coerce_to_list(j)
+            except Exception:
+                pass
+        # JSON Lines (una por línea)
+        lines = []
+        for line in s.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                j = json.loads(line)
+                if isinstance(j, dict):
+                    lines.append(j)
+            except Exception:
+                # Ignora líneas que no son JSON
+                continue
+        return lines
+
+    # tipo desconocido
+    return []
+
+
+async def get_hl7_messages():
+    """
+    Devuelve SIEMPRE una lista (posiblemente vacía).
+    No recibe 'limit'. El caller (ingestor) hace el slicing.
+    Hace 1 intento por llamada; los reintentos y backoff van en el bucle del worker.
+    """
+    async with httpx.AsyncClient(timeout=20) as c:
+        r = await c.get(f"{config.HL7_BASE}/hl7/messages")
+        # Si el server devuelve 503, deja que el caller haga backoff
+        r.raise_for_status()
+
+        # Intenta JSON directo primero
+        try:
+            payload = r.json()
+            return _coerce_to_list(payload)
+        except Exception:
+            pass
+
+        # Si no era JSON, intenta como texto
+        text = r.text
+        return _coerce_to_list(text)
 
 def _iter_segments(msg, name: str):
     """Recorre recursivamente grupos/segmentos y devuelve todos los segmentos con .name == name"""

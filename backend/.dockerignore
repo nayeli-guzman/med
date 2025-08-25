@@ -1,0 +1,13 @@
+# Docker context
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+.venv/
+.env
+.idea/
+.vscode/
+dist/
+build/
